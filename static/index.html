@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmoSense — Emotion Detection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #F8F4EE;
+  --surface:     #FFFFFF;
+  --surface-alt: #F2EDE4;
+  --border:      #E5DDD0;
+  --border-deep: #CFC4B0;
+  --text:        #28211A;
+  --text-mid:    #7A6E62;
+  --text-soft:   #B0A799;
+  --accent:      #BF5B2A;
+  --accent-dark: #8C4020;
+  --accent-pale: #F5EAE2;
+  --warm:        #D4845A;
+  --rad-s:       8px;
+  --rad-m:       14px;
+  --rad-l:       22px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+}
+
+/* ── Sticky Nav ─────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(248,244,238,0.90);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  letter-spacing: -0.01em;
+}
+
+.nav-pip {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pip 2.8s ease-in-out infinite;
+}
+@keyframes pip {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.4; transform:scale(0.65); }
+}
+
+.nav-tag {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* ── Page wrapper ───────────────────────────────── */
+.page {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 56px 24px 100px;
+}
+
+/* ── Hero ───────────────────────────────────────── */
+.hero {
+  margin-bottom: 48px;
+  animation: up 0.55s ease both;
+}
+
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero-kicker::before {
+  content: '';
+  width: 22px; height: 1.5px;
+  background: var(--warm);
+  border-radius: 2px;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+h1 em { font-style: italic; color: var(--accent); }
+
+.hero-body {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-mid);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+@keyframes up {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Card ───────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rad-l);
+  padding: 28px 28px 26px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 14px rgba(44,33,26,0.06);
+  animation: up 0.55s ease both;
+}
+.card:nth-child(1) { animation-delay: 0s; }
+.card:nth-child(2) { animation-delay: 0.07s; }
+.card:nth-child(3) { animation-delay: 0.14s; }
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--border);
+}
+
+/* ── Textarea ───────────────────────────────────── */
+textarea {
+  width: 100%;
+  height: 128px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--rad-m);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  padding: 15px 17px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+textarea::placeholder { color: var(--text-soft); font-weight: 300; font-style: italic; }
+textarea:focus {
+  border-color: var(--warm);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(191,91,42,0.09);
+}
+
+.ta-footer {
+  display: flex; justify-content: flex-end;
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--text-soft);
+  font-weight: 300;
+}
+
+/* ── Buttons ────────────────────────────────────── */
+.btn-row { display: flex; gap: 10px; margin-top: 18px; }
+
+.btn-main {
+  flex: 1;
+  padding: 13px 18px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--rad-m);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.btn-main:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 5px 18px rgba(191,91,42,0.28); }
+.btn-main:active { transform: translateY(0); box-shadow: none; }
+.btn-main:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+.btn-ghost {
+  padding: 13px 18px;
+  background: transparent;
+  border: 1px solid var(--border-deep);
+  border-radius: var(--rad-m);
+  color: var(--text-mid);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 400;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ghost:hover { background: var(--surface-alt); color: var(--text); }
+
+.spin {
+  display: none;
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rot 0.65s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* ── Error ──────────────────────────────────────── */
+.error-box {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #FEF1EA;
+  border: 1px solid #F5C4A8;
+  border-radius: var(--rad-s);
+  font-size: 13px;
+  color: var(--accent-dark);
+}
+
+/* ── Example chips ──────────────────────────────── */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-size: 12px; font-weight: 400;
+  color: var(--text-mid);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.4;
+  transition: all 0.15s;
+}
+.chip:hover {
+  background: var(--accent-pale);
+  border-color: var(--warm);
+  color: var(--accent-dark);
+}
+
+/* ── Result card ────────────────────────────────── */
+#result { display: none; }
+
+.quoted-text {
+  font-size: 13px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-mid);
+  line-height: 1.55;
+  padding: 13px 16px;
+  background: var(--surface-alt);
+  border-radius: var(--rad-s);
+  border-left: 3px solid var(--warm);
+  margin-bottom: 22px;
+}
+
+.result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 26px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--border);
+}
+
+.emo-icon {
+  width: 66px; height: 66px;
+  border-radius: var(--rad-m);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--accent-pale);
+  animation: pop 0.42s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes pop {
+  from { transform:scale(0.45); opacity:0; }
+  to   { transform:scale(1); opacity:1; }
+}
+
+.emo-info { flex:1; padding-top: 3px; }
+
+.emo-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px; font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.emo-desc {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-mid);
+  margin-bottom: 10px;
+}
+
+.conf-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-pale);
+  border: 1px solid var(--border-deep);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 12px; font-weight: 600;
+  color: var(--accent);
+}
+.conf-pill .pip {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── Probability bars ───────────────────────────── */
+.bars-title {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+
+.bar-label {
+  font-size: 12px; font-weight: 500;
+  color: var(--text-mid);
+  text-align: right;
+  text-transform: capitalize;
+  display: flex; align-items: center; justify-content: flex-end; gap: 5px;
+}
+
+.bar-track {
+  height: 5px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  width: 0%;
+  transition: width 0.85s cubic-bezier(0.22,1,0.36,1);
+}
+
+.bar-pct {
+  font-size: 11px;
+  color: var(--text-soft);
+  text-align: right;
+  font-weight: 500;
+}
+
+/* ── Footer ─────────────────────────────────────── */
+footer {
+  text-align: center;
+  margin-top: 60px;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+footer b { color: var(--text-mid); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="nav-pip"></div>
+    EmoSense
+  </div>
+  <div class="nav-tag">BiLSTM · 7 Emotions</div>
+</nav>
+
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-kicker">Deep Learning · NLP</div>
+    <h1>Detect the <em>emotion</em><br>behind any sentence</h1>
+    <p class="hero-body">Type or paste any text and the model will instantly classify the emotion using a trained Bidirectional LSTM network.</p>
+  </div>
+
+  <!-- Input card -->
+  <div class="card">
+    <div class="section-label">Your text</div>
+    <textarea id="inputText" placeholder="e.g. I cannot believe this happened to me…" maxlength="500"></textarea>
+    <div class="ta-footer"><span id="charCount">0 / 500</span></div>
+    <div class="btn-row">
+      <button class="btn-main" id="analyzeBtn" onclick="analyze()">
+        <span id="btnText">Analyze Emotion</span>
+        <div class="spin" id="spin"></div>
+      </button>
+      <button class="btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- Examples card -->
+  <div class="card">
+    <div class="section-label">Try an example</div>
+    <div class="chips">
+      <div class="chip" onclick="use(this)">the movie was amazing!</div>
+      <div class="chip" onclick="use(this)">I can't believe this is happening, it's so unbelievable and shocking! What a surprise!</div>
+      <div class="chip" onclick="use(this)">This is terrible, I can't stop crying. Everything seems so hopeless.</div>
+      <div class="chip" onclick="use(this)">Nothing exciting or bad is happening.</div>
+      <div class="chip" onclick="use(this)">I can't stand this smell.</div>
+      <div class="chip" onclick="use(this)">I am really scared about the upcoming exam. I feel anxious and overwhelmed.</div>
+    </div>
+  </div>
+
+  <!-- Result card -->
+  <div class="card" id="result">
+    <div class="section-label">Result</div>
+
+    <div class="quoted-text" id="quotedText"></div>
+
+    <div class="result-row">
+      <div class="emo-icon" id="emoIcon">😊</div>
+      <div class="emo-info">
+        <div class="emo-name" id="emoName">Happy</div>
+        <div class="emo-desc" id="emoDesc">Joyful & Positive</div>
+        <div class="conf-pill">
+          <div class="pip" id="confPip"></div>
+          <span id="confText">94.2% confidence</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bars-title">All emotion probabilities</div>
+    <div id="bars"></div>
+  </div>
+
+  <footer>
+    <b>EmoSense</b> — Emotion Detection using Deep Learning<br>
+    Built with TensorFlow · Flask · Python
+  </footer>
+
+</div>
+
+<script>
+const META = {
+  happy:     { emoji:'😊', desc:'Joyful & Positive',    color:'#BF5B2A' },
+  sad:       { emoji:'😢', desc:'Melancholic & Down',    color:'#4E7FA8' },
+  angry:     { emoji:'😠', desc:'Frustrated & Upset',    color:'#A84040' },
+  fearful:   { emoji:'😨', desc:'Anxious & Scared',      color:'#6E5C9A' },
+  disgusted: { emoji:'🤢', desc:'Repulsed & Averse',     color:'#3D7A5E' },
+  surprised: { emoji:'😲', desc:'Shocked & Astonished',  color:'#B87A2A' },
+  neutral:   { emoji:'😐', desc:'Calm & Indifferent',    color:'#7A7065' },
+};
+
+const ta = document.getElementById('inputText');
+ta.addEventListener('input', () => {
+  document.getElementById('charCount').textContent = `${ta.value.length} / 500`;
+});
+
+function use(el) {
+  ta.value = el.textContent.trim();
+  ta.dispatchEvent(new Event('input'));
+  ta.focus();
+}
+
+function clearAll() {
+  ta.value = '';
+  ta.dispatchEvent(new Event('input'));
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+async function analyze() {
+  const text = ta.value.trim();
+  if (!text) return;
+
+  const btn  = document.getElementById('analyzeBtn');
+  const bTxt = document.getElementById('btnText');
+  const spin = document.getElementById('spin');
+  const errB = document.getElementById('errorBox');
+  const res  = document.getElementById('result');
+
+  btn.disabled = true;
+  bTxt.style.display = 'none';
+  spin.style.display = 'block';
+  errB.style.display = 'none';
+  res.style.display  = 'none';
+
+  try {
+    const r = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    const m = META[d.emotion] || META.neutral;
+    const c = m.color;
+
+    document.getElementById('quotedText').textContent = `"${text}"`;
+    document.getElementById('emoIcon').textContent = m.emoji;
+    document.getElementById('emoIcon').style.background = c + '18';
+    document.getElementById('emoIcon').style.borderColor = c + '35';
+    document.getElementById('emoName').textContent = d.emotion;
+    document.getElementById('emoName').style.color = c;
+    document.getElementById('emoDesc').textContent = m.desc;
+    document.getElementById('confPip').style.background = c;
+    document.getElementById('confText').textContent = `${d.confidence}% confidence`;
+    document.getElementById('confText').parentElement.style.color = c;
+    document.getElementById('confText').parentElement.style.borderColor = c + '50';
+    document.getElementById('confText').parentElement.style.background = c + '12';
+
+    buildBars(d.all_probs, d.emotion);
+
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch (e) {
+    errB.textContent   = '⚠  ' + (e.message || 'Could not reach the Flask server. Is it running?');
+    errB.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    bTxt.style.display = 'inline';
+    spin.style.display = 'none';
+  }
+}
+
+function buildBars(probs, predicted) {
+  const el = document.getElementById('bars');
+  el.innerHTML = '';
+
+  Object.entries(probs)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([emo, pct]) => {
+      const m     = META[emo] || {};
+      const isTop = emo === predicted;
+      const fill  = isTop ? m.color : '#D4C9B5';
+
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-label" style="${isTop ? `color:${m.color};font-weight:600` : ''}">
+          <span style="font-size:13px">${m.emoji||''}</span>${emo}
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" data-w="${pct}" style="background:${fill}"></div>
+        </div>
+        <div class="bar-pct" style="${isTop ? `color:${m.color}` : ''}">${pct}%</div>`;
+      el.appendChild(row);
+    });
+
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%');
+  });
+}
+
+ta.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); analyze(); }
+});
+</script>
+</body>
+</html>
