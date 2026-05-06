@@ -3,3 +3,4 @@ numpy
 joblib
 neattext
 tensorflow-cpu
+scikit-learn
